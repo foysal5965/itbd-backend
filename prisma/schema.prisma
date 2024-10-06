@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String
+  role               UserRole
+  needPasswordChange Boolean    @default(true)
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  admin              Admin?
+  Student            Student?
+
+  @@map("users")
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [email], references: [email])
+
+  @@map("admins")
+}
+
+model Student {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  profilePhoto  String?
+  contactNumber String
+
+  isDeleted             Boolean                 @default(false)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  user                  User                    @relation(fields: [email], references: [email])
+  StudentEnrolledCourse StudentEnrolledCourse[]
+
+  @@map("students")
+}
+
+model CourseCategory {
+  id           String   @id @default(uuid())
+  categoryName String
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Course       Course[]
+
+  @@map("categories")
+}
+
+model Course {
+  id                    String                  @id @default(uuid())
+  courseName            String
+  duration              String
+  lectures              Int
+  projects              Int
+  image                 String?
+  courseOverView        String
+  courseCurriculum      String[]
+  courseFee             Int
+  categoryId            String
+  category              CourseCategory          @relation(fields: [categoryId], references: [id])
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  StudentEnrolledCourse StudentEnrolledCourse[]
+
+  @@map("courses")
+}
+
+model StudentEnrolledCourse {
+  id            String        @id @default(uuid())
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id])
+  courseId      String
+  course        Course        @relation(fields: [courseId], references: [id])
+  paymentStatus PaymentStatus @default(UNPAID)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  Payment       Payment?
+
+  @@map("student_enrolled_courses")
+}
+
+model Payment {
+  id                    String                @id @default(uuid())
+  enrolledCourseId      String                @unique
+  studentEnrolledCourse StudentEnrolledCourse @relation(fields: [enrolledCourseId], references: [id])
+  amount                Float
+  transactionId         String                @unique
+  status                PaymentStatus         @default(UNPAID)
+  paymentGatewayData    Json?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@map("payments")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
