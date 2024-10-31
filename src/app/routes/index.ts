@@ -7,6 +7,7 @@ import { courseRouter } from '../modules/course/course.routes';
 import { studentEnrolledCourseRouter } from '../modules/studentEnrolledCourse/studentEnrolledCourse.routes';
 import { paymentRouter } from '../modules/payment/payment.routes';
 import { studentRouter } from '../modules/student/student.routes';
+import { ExamRouter } from '../modules/exam/exam.routes';
 const router = express.Router()
 const moduleRoutes = [
     // ... routes
@@ -41,6 +42,10 @@ const moduleRoutes = [
     {
         path: "/payment",
         route: paymentRouter
+    },
+    {
+        path: "/exam",
+        route: ExamRouter
     },
 
 ]

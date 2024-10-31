@@ -32,7 +32,45 @@ const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Respon
         data: result.data
     })
 })
+
+const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await courseCategoryService.deleteFromDB(id);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Course category data deleted!",
+        data: result
+    })
+})
+const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await courseCategoryService.updateIntoDB(id,req);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Course category updated!",
+        data: result
+    })
+})
+const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await courseCategoryService.getByIdFromDB(id);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Course category updated!",
+        data: result
+    })
+})
+
 export const courseCategoryController ={
     createCategory,
-    getAllFromDB
+    getAllFromDB,
+    deleteFromDB,
+    updateIntoDB,
+    getByIdFromDB
 }

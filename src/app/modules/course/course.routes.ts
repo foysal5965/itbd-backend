@@ -10,10 +10,11 @@ router.get('/', courseController.getAllFromDB)
 router.post(
     "/create-course",
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-    fileUploader.upload.single('file'),
+    fileUploader.uploadSingleImage,
     (req: Request, res: Response, next: NextFunction) => {
         req.body = courseValidation.createCourseSchema.parse(JSON.parse(req.body.data))
         return courseController.createCourse(req, res, next)
     }
 );
+router.get('/:id', courseController.getByIdFromDB)
 export const courseRouter = router

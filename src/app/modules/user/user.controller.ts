@@ -4,6 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import httpStatus from "http-status";
 import pick from "../../shared/pick";
+import { IAuthUser } from "../../interfaces/commont";
 
 const createAdmin = catchAsync(async (req: Request, res: Response) => {
 
@@ -41,8 +42,23 @@ const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Respon
         data: result.data
     })
 })
+
+const updateMyProfie = catchAsync(async (req: Request, res: Response) => {
+
+    const user = req.user;
+
+    const result = await userService.updateMyProfie(user as IAuthUser, req);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My profile updated!",
+        data: result
+    })
+});
 export const userController ={
     createAdmin,
     createStudent,
-    getAllFromDB
+    getAllFromDB,
+    updateMyProfie
 }

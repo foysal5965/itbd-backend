@@ -10,10 +10,22 @@ router.get('/', courseCategoryController.getAllFromDB)
 router.post(
     "/create-category",
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
-    fileUploader.upload.single('file'),
+    fileUploader.uploadSingleImage,
     (req: Request, res: Response, next: NextFunction) => {
+        // console.log(req.body,'data')
         req.body = courseCategoryValidation.createCategoryValidation.parse(JSON.parse(req.body.data))
-        return courseCategoryController.createCategory(req, res, next)
+        // return courseCategoryController.createCategory(req, res, next)
     }
 );
+router.get('/:id', courseCategoryController.getByIdFromDB)
+router.patch(
+    "/update/:id",
+    auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+    fileUploader.uploadSingleImage,
+    (req: Request, res: Response, next: NextFunction) => {
+        req.body = courseCategoryValidation.updateCategoryValidation.parse(JSON.parse(req.body.data))
+        return courseCategoryController.updateIntoDB(req, res, next)
+    }
+);
+router.delete('/:id', courseCategoryController.deleteFromDB)
 export const courseCategoryRouter = router

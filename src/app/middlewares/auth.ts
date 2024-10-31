@@ -11,7 +11,7 @@ const auth = (...roles: string[]) => {
     return async (req: Request , res: Response, next: NextFunction) => {
         try {
             const token = req.headers?.authorization
-// console.log(token)
+            console.log(token,'data')
             if (!token) {
                 throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!?")
             }

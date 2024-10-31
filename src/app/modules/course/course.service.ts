@@ -5,14 +5,25 @@ import { fileUploader } from "../../helpers/fileUploader";
 import { Request } from "express";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { paginationHelper } from "../../helpers/paginationHelper";
+import ApiError from "../../error/ApiError";
+import { ALREADY_REPORTED } from "http-status";
 const prisma = new PrismaClient()
 const createCourse = async (req: Request): Promise<Course> => {
-
+    const isExist = await prisma.course.findFirst({
+        where: {
+            courseName: req.body.courseName
+        }
+    })
+    if (isExist) {
+        throw new ApiError(ALREADY_REPORTED, 'This course already exist!!')
+    }
     const file = req.file as IFile;
 
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
-        req.body.image = uploadToCloudinary?.secure_url
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.image = uploadToCloudinary?.secure_url
+        }
     }
 
 
@@ -29,21 +40,21 @@ const createCourse = async (req: Request): Promise<Course> => {
 
     return result;
 };
-type ICourseFilterRequest={
+type ICourseFilterRequest = {
     courseName?: string | undefined;
     searchTerm?: string | undefined;
-    id?:string | undefined
-    }
+    id?: string | undefined
+}
 const getAllFromDB = async (params: ICourseFilterRequest, options: IPaginationOptions) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);
     const { searchTerm, ...filterData } = params;
-// console.log(filterData,searchTerm)
+    // console.log(filterData,searchTerm)
     const andCondions: Prisma.CourseWhereInput[] = [];
 
     //console.log(filterData);
     if (params.searchTerm) {
         andCondions.push({
-            OR: ['courseName','categoryId','id'].map(field => ({
+            OR: ['courseName', 'categoryId', 'id'].map(field => ({
                 [field]: {
                     contains: params.searchTerm,
                     mode: 'insensitive'
@@ -63,7 +74,7 @@ const getAllFromDB = async (params: ICourseFilterRequest, options: IPaginationOp
         })
     };
 
-    
+
 
     //console.dir(andCondions, { depth: 'inifinity' })
     const whereConditons: Prisma.CourseWhereInput = { AND: andCondions }
@@ -92,7 +103,17 @@ const getAllFromDB = async (params: ICourseFilterRequest, options: IPaginationOp
         data: result
     };
 };
+
+const getByIdFromDB = async (id: string): Promise<Course | null> => {
+    const result = await prisma.course.findUnique({
+        where: {
+            id
+        }
+    })
+
+    return result;
+};
 export const courseService = {
     createCourse,
-    getAllFromDB
+    getAllFromDB, getByIdFromDB
 }

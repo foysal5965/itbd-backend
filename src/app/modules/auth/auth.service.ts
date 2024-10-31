@@ -7,18 +7,21 @@ import { Secret } from "jsonwebtoken";
 import emailSender from "./emailSender";
 import ApiError from "../../error/ApiError";
 import httpStatus from "http-status";
+import { NOTFOUND } from "dns";
 
 const loginUser = async (payload: {
     email: string,
     password: string
 }) => {
-    const userData = await prisma.user.findUniqueOrThrow({
+    const userData = await prisma.user.findFirst({
         where: {
             email: payload.email,
             status: UserStatus.ACTIVE
         }
     });
-console.log(userData.password)
+    if(!userData){
+        throw new ApiError(httpStatus.NOT_FOUND, 'User does not exist!')
+    }
     const isCorrectPassword: boolean = await bcrypt.compare(payload.password, userData.password);
 
     if (!isCorrectPassword) {
@@ -48,13 +51,14 @@ console.log(userData.password)
 };
 
 const refreshToken = async (token: string) => {
+//    console.log(token,'data')
     let decodedData;
     try {
         decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret as Secret);
         console.log(decodedData,'data')
     }
     catch (err) {
-        throw new Error("You are not authorized!???")
+        throw new ApiError(httpStatus.UNAUTHORIZED,'your are not authorized')
     }
 
     const userData = await prisma.user.findUniqueOrThrow({
@@ -82,7 +86,8 @@ const refreshToken = async (token: string) => {
 
 
 const changePassword = async (user: any, payload: any) => {
-    console.log(user, payload)
+    // console.log(user, payload)
+    let error = ''
     const userData = await prisma.user.findUniqueOrThrow({
         where: {
             email: user.email,
@@ -93,7 +98,7 @@ const changePassword = async (user: any, payload: any) => {
     const isCorrectPassword: boolean = await bcrypt.compare(payload.oldPassword, userData.password);
 
     if (!isCorrectPassword) {
-        throw new Error("Password incorrect!")
+        throw new ApiError(httpStatus.NOT_FOUND,"Password incorrect!")
     }
 
     const hashedPassword: string = await bcrypt.hash(payload.newPassword, 12);

@@ -7,6 +7,7 @@ import { IPaginationOptions } from "../../interfaces/pagination";
 import { paginationHelper } from "../../helpers/paginationHelper";
 import ApiError from "../../error/ApiError";
 import httpStatus from "http-status";
+import { IAuthUser } from "../../interfaces/commont";
 const prisma = new PrismaClient()
 const createAdmin = async (req: Request): Promise<Admin> => {
     const isExist = await prisma.user.findFirst({
@@ -22,7 +23,9 @@ const createAdmin = async (req: Request): Promise<Admin> => {
 
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
-        req.body.admin.profilePhoto = uploadToCloudinary?.secure_url
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.profilePhoto = uploadToCloudinary?.secure_url
+        }
     }
 
     const hashedPassword: string = await bcrypt.hash(req.body.password, 12)
@@ -62,7 +65,9 @@ const createStudent = async (req: Request): Promise<Student> => {
 
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
-        req.body.student.profilePhoto = uploadToCloudinary?.secure_url
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.profilePhoto = uploadToCloudinary?.secure_url
+        }
     }
 
     const hashedPassword: string = await bcrypt.hash(req.body.password, 12)
@@ -153,8 +158,54 @@ const getAllFromDB = async (params: IUserFilterRequest, options: IPaginationOpti
 };
 
 
+const updateMyProfie = async (user: IAuthUser, req: Request) => {
+    const userInfo = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: user?.email
+        }
+    });
+
+    const file = req.file as IFile;
+    if (file) {
+        const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.profilePhoto = uploadToCloudinary?.secure_url
+        }
+    }
+
+    let profileInfo;
+
+    if (userInfo.role === UserRole.SUPER_ADMIN) {
+        profileInfo = await prisma.admin.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
+    else if (userInfo.role === UserRole.ADMIN) {
+        profileInfo = await prisma.admin.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
+    else if (userInfo.role === UserRole.STUDENT) {
+        profileInfo = await prisma.student.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
+    return { ...profileInfo };
+}
+
+
 export const userService = {
     createAdmin,
     createStudent,
-    getAllFromDB
+    getAllFromDB,
+    updateMyProfie
 }

@@ -31,7 +31,20 @@ const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Respon
         data: result.data
     })
 })
+
+const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await courseService.getByIdFromDB(id);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Course category updated!",
+        data: result
+    })
+})
 export const courseController ={
     createCourse,
-    getAllFromDB
+    getAllFromDB,
+    getByIdFromDB
 }

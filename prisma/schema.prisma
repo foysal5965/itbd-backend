@@ -34,6 +34,8 @@ model Admin {
   email         String   @unique
   profilePhoto  String?
   contactNumber String
+  address       String?
+  bio           String?
   isDeleted     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -84,6 +86,7 @@ model Course {
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   StudentEnrolledCourse StudentEnrolledCourse[]
+  exams                 Exam[]
 
   @@map("courses")
 }
@@ -116,6 +119,47 @@ model Payment {
   @@map("payments")
 }
 
+model Exam {
+  id        String     @id @default(uuid())
+  title     String
+  courseId  String
+  time      Int // Store time in minutes or seconds
+  status    ExamStatus @default(DRAFT)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  course    Course     @relation(fields: [courseId], references: [id])
+  questions Question[]
+
+  @@map("exams")
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  questionNo    Int      @default(autoincrement())
+  questionText  String
+  image         String?
+  examId        String
+  correctOption String // Nullable, since there might not be a correct option immediately
+  exam          Exam     @relation(fields: [examId], references: [id])
+  options       Option[] // A question has many options,
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  optionId   Int      @default(autoincrement())
+  optionText String
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id]) // This defines the relation to the Question model
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("options")
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
@@ -136,4 +180,11 @@ enum Gender {
 enum PaymentStatus {
   PAID
   UNPAID
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  CLOSED
 }

@@ -5,6 +5,8 @@ import { fileUploader } from "../../helpers/fileUploader";
 import { Request } from "express";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { paginationHelper } from "../../helpers/paginationHelper";
+import ApiError from "../../error/ApiError";
+import httpStatus from "http-status";
 const prisma = new PrismaClient()
 const createCategory = async (req: Request): Promise<CourseCategory> => {
 
@@ -12,9 +14,19 @@ const createCategory = async (req: Request): Promise<CourseCategory> => {
 
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
-        req.body.image = uploadToCloudinary?.secure_url
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.image = uploadToCloudinary?.secure_url
+        }
+       
     }
-
+    const isExist = await prisma.courseCategory.findFirst({
+        where: {
+            categoryName: req.body.categoryName
+        }
+    })
+    if (isExist) {
+        throw new ApiError(httpStatus.ALREADY_REPORTED, 'Category alredy exist!!')
+    }
     const result = await prisma.$transaction(async (transactionClient) => {
 
 
@@ -28,9 +40,9 @@ const createCategory = async (req: Request): Promise<CourseCategory> => {
     return result;
 };
 
-type ICategoryFilterRequest={
-categoryName?: string | undefined;
-searchTerm?: string | undefined;
+type ICategoryFilterRequest = {
+    categoryName?: string | undefined;
+    searchTerm?: string | undefined;
 }
 const getAllFromDB = async (params: ICategoryFilterRequest, options: IPaginationOptions) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);
@@ -61,7 +73,7 @@ const getAllFromDB = async (params: ICategoryFilterRequest, options: IPagination
         })
     };
 
-    
+
 
     //console.dir(andCondions, { depth: 'inifinity' })
     const whereConditons: Prisma.CourseCategoryWhereInput = { AND: andCondions }
@@ -90,7 +102,50 @@ const getAllFromDB = async (params: ICategoryFilterRequest, options: IPagination
         data: result
     };
 };
+
+const deleteFromDB = async(id:string)=>{
+    const result = await prisma.courseCategory.delete({
+        where:{
+            id
+        }
+    })
+    return result
+}
+const getByIdFromDB = async (id: string): Promise<CourseCategory | null> => {
+    const result = await prisma.courseCategory.findUnique({
+        where: {
+            id
+        }
+    })
+
+    return result;
+};
+const updateIntoDB = async (id:string, req: Request) => {
+    const data = await prisma.courseCategory.findUniqueOrThrow({
+        where: {
+            id
+        }
+    });
+    const file = req.file as IFile;
+    if (file) {
+        const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+        if(!Array.isArray(uploadToCloudinary)){
+            req.body.image = uploadToCloudinary?.secure_url
+        }
+    }
+    const result = await prisma.courseCategory.update({
+        where:{
+            id: data.id
+        },
+        data:req.body
+    })
+    return result
+    
+};
 export const courseCategoryService = {
     createCategory,
-    getAllFromDB
+    getAllFromDB,
+    deleteFromDB,
+    updateIntoDB,
+    getByIdFromDB
 }

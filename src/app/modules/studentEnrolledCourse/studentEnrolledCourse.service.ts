@@ -1,8 +1,11 @@
 
+import httpStatus from "http-status"
+import ApiError from "../../error/ApiError"
+import { IAuthUser } from "../../interfaces/commont"
 import prisma from "../../shared/prisma"
 
 const insertIntoDb = async (payload: any) => {
-    console.log(payload)
+    
     const result = await prisma.$transaction(async (tx) => {
         const studentEnrolledCourseData = await tx.studentEnrolledCourse.create({
             data: {
@@ -29,6 +32,30 @@ const insertIntoDb = async (payload: any) => {
     })
     return result
 }
+
+const getCourses = async(user: IAuthUser)=>{
+    const userInfo = await prisma.student.findFirst({
+        where: {
+            email: user?.email
+        }
+    });
+    if(!userInfo){
+        throw new ApiError(httpStatus.NOT_FOUND,'user not found')
+    }
+    const result = await prisma.studentEnrolledCourse.findMany({
+        where:{
+            student:{
+                email: userInfo.email
+            }
+        },
+        include:{
+            course:true
+        }
+    })
+    // console.log(result)
+    return result
+}
 export const studentEnrolledCourseService = {
-    insertIntoDb
+    insertIntoDb,
+    getCourses
 }
