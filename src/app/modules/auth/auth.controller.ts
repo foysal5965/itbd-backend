@@ -14,7 +14,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
         secure: config.env === 'production',
         httpOnly: true
     });
-    // console.log(res.cookie,'data')
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -29,7 +28,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
     const { refreshToken } = req.cookies;
-    // console.log(refreshToken,'data')
     const result = await authService.refreshToken(refreshToken);
 
     sendResponse(res, {

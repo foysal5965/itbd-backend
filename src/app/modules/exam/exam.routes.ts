@@ -16,7 +16,6 @@ router.post(
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
     fileUploader.upload,
     (req: Request, res: Response, next: NextFunction) => {
-        console.log(req.files,'upload data')
         return examController.insertIntoDB(req, res, next)
     }
 );
@@ -28,7 +27,7 @@ router.patch('/update/:id',
     fileUploader.upload,
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
     (req: Request, res: Response, next: NextFunction) => {
-        console.log(req,'datadata')
+      
         return examController.updatedExam(req, res, next)
     }
 )

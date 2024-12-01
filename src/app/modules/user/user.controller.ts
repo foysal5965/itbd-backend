@@ -28,10 +28,8 @@ const createStudent = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Response) => {
-    // console.log(req.query)
     const filters = pick(req.query, ['email', 'searchTerm', "id"]);
     const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
-    console.log(options)
     const result = await userService.getAllFromDB(filters, options)
 
     sendResponse(res, {
@@ -42,7 +40,19 @@ const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Respon
         data: result.data
     })
 })
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 
+    const user = req.user;
+
+    const result = await userService.getMyProfile(user as IAuthUser);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My profile data fetched!",
+        data: result
+    })
+});
 const updateMyProfie = catchAsync(async (req: Request, res: Response) => {
 
     const user = req.user;
@@ -60,5 +70,6 @@ export const userController ={
     createAdmin,
     createStudent,
     getAllFromDB,
-    updateMyProfie
+    updateMyProfie,
+    getMyProfile
 }

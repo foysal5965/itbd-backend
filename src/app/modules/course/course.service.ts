@@ -48,10 +48,8 @@ type ICourseFilterRequest = {
 const getAllFromDB = async (params: ICourseFilterRequest, options: IPaginationOptions) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);
     const { searchTerm, ...filterData } = params;
-    // console.log(filterData,searchTerm)
     const andCondions: Prisma.CourseWhereInput[] = [];
 
-    //console.log(filterData);
     if (params.searchTerm) {
         andCondions.push({
             OR: ['courseName', 'categoryId', 'id'].map(field => ({

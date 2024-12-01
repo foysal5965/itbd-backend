@@ -17,10 +17,8 @@ const createCourse = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Response) => {
-    // console.log(req.query)
     const filters = pick(req.query, ['courseName', 'searchTerm', "categoryId",'id']);
     const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
-    console.log(options)
     const result = await courseService.getAllFromDB(filters, options)
 
     sendResponse(res, {

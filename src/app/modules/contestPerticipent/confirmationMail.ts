@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import config from '../../config';
 
 
-const emailSender = async (
+const ConfirmationEmailSender = async (
     email: string,
     html: string
 ) => {
@@ -20,12 +20,12 @@ const emailSender = async (
     });
 
     const info = await transporter.sendMail({
-        from: '"PH Health Care" <fahimfiroz.ph@gmail.com>', // sender address
+        from: 'foysalahmed5965@gmail.com', // sender address
         to: email, // list of receivers
-        subject: "Reset Password Link", // Subject line
+        subject: 'Registration Confirmation for "Code Sprint 2024"', // Subject line
         //text: "Hello world?", // plain text body
         html, // html body
     });
 }
 
-export default emailSender;
+export default ConfirmationEmailSender;

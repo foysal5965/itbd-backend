@@ -1,23 +1,28 @@
-import { Prisma } from "@prisma/client";
-import { paginationHelper } from "../../helpers/paginationHelper";
-import { IPaginationOptions } from "../../interfaces/pagination";
-import prisma from "../../shared/prisma";
 
-interface IStudentFilterRequest{
-    email?:string;
-    contactNumber?:string;
-    name?:string;
-    searchTerm?:string
+import { Prisma } from "@prisma/client"
+import { paginationHelper } from "../../helpers/paginationHelper"
+import { IPaginationOptions } from "../../interfaces/pagination"
+import prisma from "../../shared/prisma"
+
+const insertIntoDB = async(payload:any)=>{
+    const result = await prisma.contest.create({
+        data:payload
+    })
+
+    return result
 }
-const getAllFromDB = async (params: IStudentFilterRequest, options: IPaginationOptions) => {
+type IContestFilterRequest = {
+    name?: string | undefined;
+    searchTerm?: string | undefined;
+}
+const getAllFromDB = async (params: IContestFilterRequest, options: IPaginationOptions) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);
     const { searchTerm, ...filterData } = params;
-
-    const andCondions: Prisma.StudentWhereInput[] = [];
+    const andCondions: Prisma.ContestWhereInput[] = [];
 
     if (params.searchTerm) {
         andCondions.push({
-            OR: ['email', 'name', 'phoneNumber','contactNumber'].map(field => ({
+            OR: ['name',].map(field => ({
                 [field]: {
                     contains: params.searchTerm,
                     mode: 'insensitive'
@@ -30,20 +35,19 @@ const getAllFromDB = async (params: IStudentFilterRequest, options: IPaginationO
         andCondions.push({
             AND: Object.keys(filterData).map(key => ({
                 [key]: {
-                    equals: (filterData as any)[key]
+                    equals: (filterData as any)[key],
+                    mode: 'insensitive'
                 }
             }))
         })
     };
 
-    andCondions.push({
-        isDeleted: false
-    })
+
 
     //console.dir(andCondions, { depth: 'inifinity' })
-    const whereConditons: Prisma.StudentWhereInput = { AND: andCondions }
+    const whereConditons: Prisma.ContestWhereInput = { AND: andCondions }
 
-    const result = await prisma.student.findMany({
+    const result = await prisma.contest.findMany({
         where: whereConditons,
         skip,
         take: limit,
@@ -54,7 +58,7 @@ const getAllFromDB = async (params: IStudentFilterRequest, options: IPaginationO
         }
     });
 
-    const total = await prisma.student.count({
+    const total = await prisma.contest.count({
         where: whereConditons
     });
 
@@ -68,6 +72,8 @@ const getAllFromDB = async (params: IStudentFilterRequest, options: IPaginationO
     };
 };
 
-export const studentService={
+
+export const contestService = {
+    insertIntoDB,
     getAllFromDB
 }

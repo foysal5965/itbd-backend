@@ -51,11 +51,9 @@ const loginUser = async (payload: {
 };
 
 const refreshToken = async (token: string) => {
-//    console.log(token,'data')
     let decodedData;
     try {
         decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret as Secret);
-        console.log(decodedData,'data')
     }
     catch (err) {
         throw new ApiError(httpStatus.UNAUTHORIZED,'your are not authorized')
@@ -86,7 +84,7 @@ const refreshToken = async (token: string) => {
 
 
 const changePassword = async (user: any, payload: any) => {
-    // console.log(user, payload)
+
     let error = ''
     const userData = await prisma.user.findUniqueOrThrow({
         where: {
@@ -133,7 +131,6 @@ const forgotPassword = async (payload: { email: string }) => {
         config.jwt.reset_pass_secret as Secret,
         config.jwt.reset_pass_token_expires_in as string
     )
-    //console.log(resetPassToken)
 
     const resetPassLink = config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`
 
@@ -153,12 +150,10 @@ const forgotPassword = async (payload: { email: string }) => {
         </div>
         `
     )
-    //console.log(resetPassLink)
 };
 
 
 const resetPassword = async (token: string, payload: { id: string, password: string }) => {
-    console.log({ token, payload })
 
     const userData = await prisma.user.findUniqueOrThrow({
         where: {

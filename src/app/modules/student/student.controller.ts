@@ -6,10 +6,8 @@ import sendResponse from "../../shared/sendResponse";
 import httpStatus from "http-status";
 
 const getAllFromDB: RequestHandler = catchAsync(async (req: Request, res: Response) => {
-    // console.log(req.query)
     const filters = pick(req.query, ['email','contactNumber','name','searchTerm']);
     const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
-    console.log(options)
     const result = await studentService.getAllFromDB(filters, options)
 
     sendResponse(res, {

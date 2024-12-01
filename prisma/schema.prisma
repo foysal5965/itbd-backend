@@ -14,16 +14,17 @@ datasource db {
 }
 
 model User {
-  id                 String     @id @default(uuid())
-  email              String     @unique
+  id                 String              @id @default(uuid())
+  email              String              @unique
   password           String
   role               UserRole
-  needPasswordChange Boolean    @default(true)
-  status             UserStatus @default(ACTIVE)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  needPasswordChange Boolean             @default(true)
+  status             UserStatus          @default(ACTIVE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   admin              Admin?
   Student            Student?
+  ContestPerticipent ContestPerticipent?
 
   @@map("users")
 }
@@ -56,6 +57,7 @@ model Student {
   updatedAt             DateTime                @updatedAt
   user                  User                    @relation(fields: [email], references: [email])
   StudentEnrolledCourse StudentEnrolledCourse[]
+  StudentResult         StudentResult[]
 
   @@map("students")
 }
@@ -120,15 +122,16 @@ model Payment {
 }
 
 model Exam {
-  id        String     @id @default(uuid())
-  title     String
-  courseId  String
-  time      Int // Store time in minutes or seconds
-  status    ExamStatus @default(DRAFT)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  course    Course     @relation(fields: [courseId], references: [id])
-  questions Question[]
+  id            String          @id @default(uuid())
+  title         String
+  courseId      String
+  time          Int // Store time in minutes or seconds
+  status        ExamStatus      @default(DRAFT)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  course        Course          @relation(fields: [courseId], references: [id])
+  questions     Question[]
+  StudentResult StudentResult[]
 
   @@map("exams")
 }
@@ -160,10 +163,58 @@ model Option {
   @@map("options")
 }
 
+model StudentResult {
+  id        String   @id @default(uuid())
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id])
+  score     Int
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("student_results")
+}
+
+model Contest {
+  id                 String               @id @default(uuid()) // Primary Key
+  name               String // Contest name
+  description        String? // Contest description
+  startTime          DateTime // Contest start time
+  endTime            DateTime // Contest end time
+  rules              String? // Rules for the contest
+  rewards            String? // Rewards for winners
+  createdAt          DateTime             @default(now()) // Auto-generated creation timestamp
+  updatedAt          DateTime             @updatedAt // Auto-generated last update timestamp
+  ContestPerticipent ContestPerticipent[]
+
+  @@map("contests")
+}
+
+model ContestPerticipent {
+  id               String        @id @default(uuid()) // Primary Key
+  name             String
+  email            String        @unique
+  isStudent        IsStudent     @default(YES)
+  jobExperience    JobExperience @default(NONE)
+  tShirtSize       TShirtSize    @default(L)
+  image            String?
+  permissionLetter String?
+  instituteName    String 
+  user             User          @relation(fields: [email], references: [email])
+  contestId        String
+  contests         Contest       @relation(fields: [contestId], references: [id])
+  createdAt        DateTime      @default(now()) // Auto-generated creation timestamp
+  updatedAt        DateTime      @updatedAt
+
+  @@map("contestPerticipents")
+}
+
 enum UserRole {
   SUPER_ADMIN
   ADMIN
   STUDENT
+  CONTESTPERTICIPENT
 }
 
 enum UserStatus {
@@ -187,4 +238,24 @@ enum ExamStatus {
   PUBLISHED
   ACTIVE
   CLOSED
+}
+
+enum IsStudent {
+  YES
+  NO
+}
+
+enum TShirtSize {
+  S
+  M
+  L
+  XL
+  XXL
+}
+
+enum JobExperience {
+  NONE // 0 months
+  ONE_TO_SIX // 1-6 months
+  SIX_TO_TWELVE // 6-12 months
+  MORE_THAN_TWELVE // More than 12 months
 }

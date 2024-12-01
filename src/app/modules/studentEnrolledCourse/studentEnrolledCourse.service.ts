@@ -52,7 +52,6 @@ const getCourses = async(user: IAuthUser)=>{
             course:true
         }
     })
-    // console.log(result)
     return result
 }
 export const studentEnrolledCourseService = {

@@ -50,7 +50,7 @@ const getAllFromDB = async (params: ICategoryFilterRequest, options: IPagination
 
     const andCondions: Prisma.CourseCategoryWhereInput[] = [];
 
-    //console.log(filterData);
+  
     if (params.searchTerm) {
         andCondions.push({
             OR: ['categoryName'].map(field => ({

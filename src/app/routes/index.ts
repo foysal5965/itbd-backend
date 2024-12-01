@@ -8,6 +8,9 @@ import { studentEnrolledCourseRouter } from '../modules/studentEnrolledCourse/st
 import { paymentRouter } from '../modules/payment/payment.routes';
 import { studentRouter } from '../modules/student/student.routes';
 import { ExamRouter } from '../modules/exam/exam.routes';
+import { studentResultRouter } from '../modules/studentResult/studentResult.routes';
+import { contestRouter } from '../modules/contest/constest.routes';
+import { contestPerticipentRouter } from '../modules/contestPerticipent/contestPerticipent.routes';
 const router = express.Router()
 const moduleRoutes = [
     // ... routes
@@ -46,6 +49,18 @@ const moduleRoutes = [
     {
         path: "/exam",
         route: ExamRouter
+    },
+    {
+        path: "/student-result",
+        route: studentResultRouter
+    },
+    {
+        path: "/contest",
+        route: contestRouter
+    },
+    {
+        path: "/manage-contest",
+        route: contestPerticipentRouter
     },
 
 ]

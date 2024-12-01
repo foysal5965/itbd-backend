@@ -48,7 +48,7 @@ const insertIntoDB = async (req: Request) => {
 
             if (imageFiles && imageFiles.length > 0) {
                 const imageFile = imageFiles[0]; // Get the first file for the question
-                console.log(`Uploading image for question ${index}:`, imageFile);
+               
 
                 // Upload the image to Cloudinary or another service and get the URL
                 const uploadToCloudinary = await fileUploader.uploadToCloudinary(imageFile);
@@ -108,7 +108,7 @@ const getAllFromDB = async (params: IExamFilterRequest, options: IPaginationOpti
 
     const andCondions: Prisma.ExamWhereInput[] = [];
 
-    //console.log(filterData);
+   
     if (params.searchTerm) {
         andCondions.push({
             OR: ['title'].map(field => ({
@@ -274,10 +274,7 @@ const STATUS_OPTIONS = ['DRAFT', 'PUBLISHED', 'ACTIVE', 'CLOSED', 'GRADING', 'CO
 const updateExamStatus = async (req: Request) => {
 
     const examId = req.params.id;
-    console.log(req.body, 'data')
     const { status } = req.body;
-    // console.log(status,examId,'data')
-    // Validate the incoming status
     if (!STATUS_OPTIONS.includes(status)) {
         // return res.status(400).json({ error: 'Invalid status value.' });
     }
@@ -289,7 +286,7 @@ const updateExamStatus = async (req: Request) => {
                 where: { id: examId }
             });
 
-            // console.log('Current exam data:', examData);
+           
 
             // Step 2: Handle the status transitions within the transaction
             if (status === 'DRAFT') {
@@ -326,31 +323,42 @@ async function publishExam(examData: Exam, prisma: PrismaClient) {
         }
     });
 
-    console.log('Exam published:', updatedExam);
-
     // Activate the exam immediately within the same transaction
     await activateExam(updatedExam, prisma);
 }
 
 // Step 4: Activate the exam and schedule the closure after the `time` (in minutes), within the transaction
 async function activateExam(examData: Exam, prisma: PrismaClient) {
+    // Step 1: Check if there is already an active exam for the same course
+    const activeExam = await prisma.exam.findFirst({
+        where: {
+            courseId: examData.courseId, // Assuming courseId links the exam to a course
+            status: 'ACTIVE',
+        },
+    });
+
+    if (activeExam) {
+        throw new Error(
+            `Another exam is already active for this course: ${activeExam.id}`
+        );
+    }
+
+    // Step 2: Activate the exam
     const updatedExam = await prisma.exam.update({
         where: { id: examData.id },
         data: {
             status: 'ACTIVE',
-            updatedAt: new Date() // Track activation time
-        }
+            updatedAt: new Date(), // Track activation time
+        },
     });
 
-    console.log('Exam activated:', updatedExam);
-
+    // Step 3: Schedule the exam to be closed after the specified duration
     const durationInMs = updatedExam.time * 60 * 1000; // Convert time from minutes to milliseconds
-
-    // Schedule the exam to be closed after the specified duration
     setTimeout(async () => {
         await closeExam(updatedExam, prisma);
     }, durationInMs);
 }
+
 
 // Step 5: Close the exam after the duration expires, within the transaction
 async function closeExam(examData: Exam, prisma: PrismaClient) {
@@ -361,8 +369,6 @@ async function closeExam(examData: Exam, prisma: PrismaClient) {
             updatedAt: new Date() // Update the timestamp
         }
     });
-
-    console.log('Exam closed:', updatedExam);
 }
 
 // Step 6: Optional - Check if the exam needs to be closed, within the transaction

@@ -17,7 +17,6 @@ const initPayment = async (enrolledCourseId: string) => {
             }
         }
     })
-    console.log(paymentData,'data')
     const initPaymentData = {
         amount: paymentData.studentEnrolledCourse.course.courseFee,
         transactionId: paymentData.transactionId,

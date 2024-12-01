@@ -1,4 +1,4 @@
-import { Admin, Prisma, PrismaClient, Student, UserRole } from "@prisma/client"
+import { Admin, Prisma, PrismaClient, Student, UserRole, UserStatus } from "@prisma/client"
 import * as bcrypt from 'bcrypt'
 import { IFile } from "../../interfaces/file";
 import { fileUploader } from "../../helpers/fileUploader";
@@ -101,10 +101,8 @@ interface IUserFilterRequest {
 const getAllFromDB = async (params: IUserFilterRequest, options: IPaginationOptions) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);
     const { searchTerm, ...filterData } = params;
-    // console.log(filterData,searchTerm)
     const andCondions: Prisma.UserWhereInput[] = [];
 
-    //console.log(filterData);
     if (params.searchTerm) {
         andCondions.push({
             OR: ['email', 'id'].map(field => ({
@@ -202,10 +200,52 @@ const updateMyProfie = async (user: IAuthUser, req: Request) => {
     return { ...profileInfo };
 }
 
+const getMyProfile = async (user: IAuthUser) => {
 
+    const userInfo = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: user?.email,
+            status: UserStatus.ACTIVE
+        },
+        select: {
+            id: true,
+            email: true,
+            needPasswordChange: true,
+            role: true,
+            status: true
+        }
+    });
+
+    let profileInfo;
+
+    if (userInfo.role === UserRole.SUPER_ADMIN) {
+        profileInfo = await prisma.admin.findUnique({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+    else if (userInfo.role === UserRole.ADMIN) {
+        profileInfo = await prisma.admin.findUnique({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+    else if (userInfo.role === UserRole.STUDENT) {
+        profileInfo = await prisma.student.findUnique({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+
+    return { ...userInfo, ...profileInfo };
+};
 export const userService = {
     createAdmin,
     createStudent,
     getAllFromDB,
-    updateMyProfie
+    updateMyProfie,
+    getMyProfile
 }

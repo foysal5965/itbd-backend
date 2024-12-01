@@ -12,7 +12,6 @@ router.post(
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
     fileUploader.uploadSingleImage,
     (req: Request, res: Response, next: NextFunction) => {
-        // console.log(req.body,'data')
         req.body = courseCategoryValidation.createCategoryValidation.parse(JSON.parse(req.body.data))
         // return courseCategoryController.createCategory(req, res, next)
     }
